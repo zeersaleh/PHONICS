@@ -16,6 +16,19 @@
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
             border: 2px solid transparent; /* For selection indication */
+            display: flex; /* Use flexbox for alignment */
+            flex-direction: column; /* Stack image and text vertically */
+            align-items: center; /* Center items horizontally */
+            justify-content: space-between; /* Space between image and text */
+            height: 100%; /* Make card fill grid cell height */
+        }
+        .image-card img {
+             max-height: 128px; /* Limit image height (h-32) */
+             object-fit: contain; /* Ensure image fits without distortion */
+             margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .image-card span {
+            text-align: center; /* Center the text label */
         }
         .image-card:hover {
             transform: scale(1.05);
@@ -47,6 +60,7 @@
         /* Style for the message box */
         #message-box {
             transition: opacity 0.5s ease-in-out;
+            min-height: 2rem; /* Ensure space for messages (h-8) */
         }
         /* Style for the speak button */
         #speak-button {
@@ -64,7 +78,7 @@
 
     <h1 class="text-3xl font-bold text-sky-700 mb-6">Pronunciation Helper!</h1>
 
-    <div id="message-box" class="text-xl font-semibold text-gray-700 mb-4 h-8"></div>
+    <div id="message-box" class="text-xl font-semibold text-gray-700 mb-4 text-center"></div>
 
     <div id="image-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 max-w-2xl w-full">
         </div>
@@ -75,30 +89,30 @@
 
     <script>
         // --- Game Data ---
+        // Using placeholder images. Replace these URLs with your actual image paths.
         const words = [
             { name: 'Black', image: 'https://placehold.co/150x150/000000/FFFFFF?text=Black' },
-            { name: 'Blanket', image: 'https://placehold.co/150x150/FBBF24/000000?text=Blanket' }, // Amber color for blanket
-            { name: 'Clock', image: 'https://placehold.co/150x150/ECFCCB/3F6212?text=Clock' }, // Lime color for clock
-            { name: 'Club', image: 'https://placehold.co/150x150/A3E635/4D7C0F?text=Club' }, // Using a placeholder image for 'Club' as it's ambiguous
-            { name: 'Broom', image: 'https://placehold.co/150x150/CA8A04/FFFFFF?text=Broom' }, // Yellow-brown for broom
-            { name: 'Bride', image: 'https://placehold.co/150x150/FFFFFF/E11D48?text=Bride' }, // White background for bride
-            { name: 'Crab', image: 'https://placehold.co/150x150/22D3EE/0E7490?text=Crab' }, // Cyan for crab
-            { name: 'Crocodile', image: 'https://placehold.co/150x150/15803D/FFFFFF?text=Crocodile' }, // Dark green for crocodile
-            { name: 'Fly', image: 'https://placehold.co/150x150/6B7280/FFFFFF?text=Fly' }, // Gray for fly
-            { name: 'Flag', image: 'https://placehold.co/150x150/DC2626/FFFFFF?text=Flag' }, // Red for flag
-            { name: 'Globe', image: 'https://placehold.co/150x150/2563EB/FFFFFF?text=Globe' }, // Blue for globe
-            { name: 'Glass', image: 'https://placehold.co/150x150/BFDBFE/1E3A8A?text=Glass' }, // Light blue for glass
-            { name: 'Frog', image: 'https://placehold.co/150x150/FACC15/854D0E?text=Frog' }, // Yellow for frog
-            { name: 'Friday', image: 'https://placehold.co/150x150/A855F7/FFFFFF?text=Friday' }, // Purple for Friday calendar
-            { name: 'Green', image: 'https://placehold.co/150x150/16A34A/FFFFFF?text=Green' }, // Green color splash
-            { name: 'Grass', image: 'https://placehold.co/150x150/84CC16/3F6212?text=Grass' }  // Lime green for grass
+            { name: 'Blanket', image: 'https://placehold.co/150x150/FBBF24/000000?text=Blanket' },
+            { name: 'Clock', image: 'https://placehold.co/150x150/ECFCCB/3F6212?text=Clock' },
+            { name: 'Club', image: 'https://placehold.co/150x150/A3E635/4D7C0F?text=Club' },
+            { name: 'Broom', image: 'https://placehold.co/150x150/CA8A04/FFFFFF?text=Broom' },
+            { name: 'Bride', image: 'https://placehold.co/150x150/FFFFFF/E11D48?text=Bride' },
+            { name: 'Crab', image: 'https://placehold.co/150x150/22D3EE/0E7490?text=Crab' },
+            { name: 'Crocodile', image: 'https://placehold.co/150x150/15803D/FFFFFF?text=Crocodile' },
+            { name: 'Fly', image: 'https://placehold.co/150x150/6B7280/FFFFFF?text=Fly' },
+            { name: 'Flag', image: 'https://placehold.co/150x150/DC2626/FFFFFF?text=Flag' },
+            { name: 'Globe', image: 'https://placehold.co/150x150/2563EB/FFFFFF?text=Globe' },
+            { name: 'Glass', image: 'https://placehold.co/150x150/BFDBFE/1E3A8A?text=Glass' },
+            { name: 'Frog', image: 'https://placehold.co/150x150/FACC15/854D0E?text=Frog' },
+            { name: 'Friday', image: 'https://placehold.co/150x150/A855F7/FFFFFF?text=Friday' },
+            { name: 'Green', image: 'https://placehold.co/150x150/16A34A/FFFFFF?text=Green' },
+            { name: 'Grass', image: 'https://placehold.co/150x150/84CC16/3F6212?text=Grass' }
         ];
 
         // --- Game State ---
         let currentWord = null;
-        let synth = window.speechSynthesis; // Initialize speech synthesis
-        let utterance = new SpeechSynthesisUtterance();
-        let gameActive = true; // To prevent clicks while processing
+        const synth = window.speechSynthesis; // Speech synthesis interface
+        let gameActive = true; // To prevent clicks while processing or between words
 
         // --- DOM Elements ---
         const imageGrid = document.getElementById('image-grid');
@@ -108,7 +122,7 @@
         // --- Functions ---
 
         /**
-         * Shuffles an array in place.
+         * Shuffles an array in place (Fisher-Yates algorithm).
          * @param {Array} array The array to shuffle.
          */
         function shuffleArray(array) {
@@ -120,24 +134,45 @@
 
         /**
          * Speaks the given text using the Web Speech API.
+         * Creates a new utterance each time to avoid potential state issues.
          * @param {string} text The text to speak.
          */
         function speak(text) {
+            // Cancel any ongoing speech before starting new speech
             if (synth.speaking) {
-                console.error('SpeechSynthesisUtterance is already speaking.');
-                return;
+                console.log("Cancelling previous speech");
+                synth.cancel();
             }
-            if (text !== '') {
-                utterance.text = text;
-                utterance.pitch = 1; // Range 0-2
-                utterance.rate = 0.9; // Range 0.1-10
-                utterance.volume = 1; // Range 0-1
-                // Optional: Select a specific voice if needed
-                // const voices = synth.getVoices();
-                // utterance.voice = voices[0]; // Choose a voice
-                synth.speak(utterance);
-            }
+
+            // Use a timeout to allow cancel to properly finish before speaking again
+            setTimeout(() => {
+                if (text) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.pitch = 1; // Range 0-2
+                    utterance.rate = 0.9; // Range 0.1-10 (slower rate)
+                    utterance.volume = 1; // Range 0-1
+                    // Optional: Select a specific voice if needed
+                    // const voices = synth.getVoices();
+                    // if (voices.length > 0) {
+                    //    utterance.voice = voices[0]; // Example: use the first available voice
+                    // } else {
+                    //     console.warn("No speech synthesis voices found.");
+                    // }
+
+                    utterance.onerror = (event) => {
+                        console.error('SpeechSynthesisUtterance error:', event.error);
+                        messageBox.textContent = 'Sorry, speech could not be played.';
+                        messageBox.classList.add('text-red-600');
+                    };
+
+                    console.log("Speaking:", text);
+                    synth.speak(utterance);
+                } else {
+                    console.warn("Speak function called with empty text.");
+                }
+            }, 100); // Short delay (100ms) after cancel
         }
+
 
         /**
          * Handles the click event on an image card.
@@ -145,37 +180,47 @@
          * @param {object} wordData The data associated with the clicked image.
          */
         function handleImageClick(event, wordData) {
-            if (!gameActive || !currentWord) return; // Do nothing if game is inactive or no word selected
+            if (!gameActive || !currentWord) {
+                console.log("Click ignored: Game not active or no current word.");
+                return; // Do nothing if game is inactive or no word selected
+            }
 
             const clickedCard = event.currentTarget;
 
-            // Remove previous feedback styles
-            document.querySelectorAll('.image-card').forEach(card => {
-                card.classList.remove('correct', 'incorrect');
+            // Remove previous feedback styles immediately
+            document.querySelectorAll('.image-card.incorrect').forEach(card => {
+                card.classList.remove('incorrect');
             });
 
             if (wordData.name === currentWord.name) {
-                // Correct guess
+                // --- Correct guess ---
+                console.log("Correct guess:", wordData.name);
                 messageBox.textContent = 'Correct! 🎉';
                 messageBox.classList.remove('text-red-600');
                 messageBox.classList.add('text-green-600');
-                clickedCard.classList.add('correct');
+                clickedCard.classList.add('correct'); // Add correct style
                 gameActive = false; // Disable clicks temporarily
 
                 // Move to the next word after a short delay
                 setTimeout(() => {
-                    nextWord();
-                    gameActive = true; // Re-enable clicks
+                    nextWord(); // Setup and speak the next word
+                    gameActive = true; // Re-enable clicks after setup
                 }, 1500); // 1.5 second delay
 
             } else {
-                // Incorrect guess
+                // --- Incorrect guess ---
+                console.log("Incorrect guess. Clicked:", wordData.name, "Expected:", currentWord.name);
                 messageBox.textContent = `Try again! That was "${wordData.name}".`;
                 messageBox.classList.remove('text-green-600');
                 messageBox.classList.add('text-red-600');
-                clickedCard.classList.add('incorrect');
-                // Optionally speak the correct word again after a wrong guess
-                // setTimeout(() => speak(`Click on ${currentWord.name}`), 500);
+                clickedCard.classList.add('incorrect'); // Add incorrect style
+
+                // Re-speak the target word to help the user
+                 setTimeout(() => {
+                     if (currentWord && !synth.speaking) { // Check again before speaking
+                        speak(`Find ${currentWord.name}`);
+                     }
+                 }, 500); // Speak after a short delay
             }
         }
 
@@ -183,15 +228,18 @@
          * Sets up the next word challenge.
          */
         function nextWord() {
+            console.log("Setting up next word...");
             // Clear previous state
             messageBox.textContent = '';
+            messageBox.classList.remove('text-red-600', 'text-green-600'); // Clear color classes
             document.querySelectorAll('.image-card').forEach(card => {
-                card.classList.remove('correct', 'incorrect');
+                card.classList.remove('correct', 'incorrect'); // Clear all borders/animations
             });
 
             // Pick a new random word
             const randomIndex = Math.floor(Math.random() * words.length);
             currentWord = words[randomIndex];
+            console.log("New word:", currentWord.name);
 
             // Shuffle the display order of images for variety
             shuffleArray(words);
@@ -199,73 +247,65 @@
 
             // Announce the word to find
             messageBox.textContent = `Click on the image for:`;
-            speak(currentWord.name);
+            speak(currentWord.name); // Speak the new word
         }
 
         /**
          * Renders the image cards in the grid.
          */
         function renderImages() {
+            console.log("Rendering images...");
             imageGrid.innerHTML = ''; // Clear existing images
             words.forEach(wordData => {
                 const card = document.createElement('div');
-                card.className = 'image-card bg-white rounded-lg shadow-md overflow-hidden p-2 flex flex-col items-center';
+                // Added base classes + specific classes from <style>
+                card.className = 'image-card bg-white rounded-lg shadow-md overflow-hidden p-2';
+                // Attach click listener to the card
                 card.addEventListener('click', (event) => handleImageClick(event, wordData));
 
                 const img = document.createElement('img');
                 img.src = wordData.image;
                 img.alt = wordData.name;
-                img.className = 'w-full h-32 object-contain mb-2'; // Use object-contain to fit placeholder text
+                img.className = 'w-full h-32 object-contain mb-2'; // Tailwind classes for image styling
+
                  // Fallback for broken images
                 img.onerror = function() {
+                    console.error(`Failed to load image: ${this.src}`);
                     this.onerror=null; // Prevent infinite loop if placeholder fails
-                    this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Image+Error';
+                    this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Error'; // Simple error placeholder
                     this.alt = `Error loading image for ${wordData.name}`;
                 };
 
-
                 const nameLabel = document.createElement('span');
                 nameLabel.textContent = wordData.name;
-                nameLabel.className = 'text-sm font-medium text-gray-700 mt-1';
+                nameLabel.className = 'text-sm font-medium text-gray-700 mt-1 text-center'; // Added text-center
 
                 card.appendChild(img);
                 card.appendChild(nameLabel); // Add text label below image
                 imageGrid.appendChild(card);
             });
+             console.log("Images rendered.");
         }
 
         // --- Event Listeners ---
         speakButton.addEventListener('click', () => {
-            if (currentWord && !synth.speaking) {
-                speak(currentWord.name);
+            if (currentWord) {
+                 console.log("Speak button clicked for:", currentWord.name);
+                speak(currentWord.name); // Speak the current word again
+            } else {
+                console.log("Speak button clicked, but no current word.");
             }
         });
 
-         // Ensure voices are loaded before starting (important for some browsers)
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {
-                synth = window.speechSynthesis; // Re-assign synth
-                // Check if voices are loaded, might need a small delay
-                setTimeout(() => {
-                     if (!currentWord) nextWord(); // Start game only after voices might be ready
-                }, 100); // Small delay
-            };
-        }
-
-
         // --- Initialize Game ---
-        // Need to wait a bit for voices to potentially load, especially on first visit
-         setTimeout(() => {
-            // Check if voices are available, otherwise proceed with default
-             if (synth.getVoices().length > 0) {
-                 if (!currentWord) nextWord(); // Start if voices are ready
-             } else {
-                 // Fallback if voices don't load quickly
-                 console.warn("Speech synthesis voices not loaded yet, using default.");
-                 if (!currentWord) nextWord();
-             }
-         }, 500); // Wait 500ms
-
+        // Use window.onload to ensure the DOM is fully loaded before starting the game
+        window.onload = () => {
+            console.log("Window loaded. Initializing game.");
+            // A small delay before the first word to ensure speech synthesis is ready
+            setTimeout(() => {
+                 nextWord(); // Start the game by picking the first word
+            }, 200); // 200ms delay
+        };
 
     </script>
 
