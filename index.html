@@ -3,121 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pronunciation Helper</title>
+    <title>Sound Match Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Use Inter font */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f9ff; /* Light blue background */
+            position: relative; /* Needed for absolute positioning of animation container */
+            min-height: 100vh;
+            padding-bottom: 60px; /* Add padding for the footer link */
         }
         /* Style for the image cards */
         .image-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.3s ease;
             cursor: pointer;
-            border: 2px solid transparent; /* For selection indication */
-            display: flex; /* Use flexbox for alignment */
-            flex-direction: column; /* Stack image and text vertically */
-            align-items: center; /* Center items horizontally */
-            justify-content: space-between; /* Space between image and text */
-            height: 100%; /* Make card fill grid cell height */
+            border: 3px solid transparent; /* Base border */
+            background-color: white; /* Ensure background for contrast */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
         }
-        .image-card img {
-             max-height: 128px; /* Limit image height (h-32) */
-             object-fit: contain; /* Ensure image fits without distortion */
-             margin-bottom: 0.5rem; /* mb-2 */
+         .image-card img {
+             max-height: 112px; /* Slightly smaller image (h-28) */
+             object-fit: contain;
+             margin-bottom: 0.5rem;
         }
         .image-card span {
-            text-align: center; /* Center the text label */
+            text-align: center;
+            font-size: 0.875rem; /* text-sm */
         }
         .image-card:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        /* Correct selection style */
-        .correct {
-            border: 4px solid #22c55e; /* Green border */
-            animation: pulse-green 1s;
+        /* Style for correctly selected card */
+        .selected-correct {
+            border-color: #22c55e; /* Green border */
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
         }
-        /* Incorrect selection style */
-        .incorrect {
-            border: 4px solid #ef4444; /* Red border */
+        /* Style for incorrectly selected card */
+        .selected-incorrect {
+            border-color: #ef4444; /* Red border */
             animation: shake 0.5s;
         }
-        /* Animation for correct answer */
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        /* Animation for incorrect answer */
+        /* Animation for incorrect selection */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             50% { transform: translateX(5px); }
             75% { transform: translateX(-5px); }
         }
-        /* Style for the message box */
+        /* Style for the instruction area */
+        #instruction-area {
+            background-color: #e0f2fe; /* Lighter sky blue */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 2px solid #7dd3fc; /* Sky blue border */
+            min-height: 4rem; /* Ensure space */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #instruction-text {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: #0369a1; /* Sky 700 */
+        }
+        #instruction-text .blend {
+            font-weight: 700; /* font-bold */
+            color: #0284c7; /* Sky 600 */
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: white;
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        /* Style for the feedback message box */
         #message-box {
-            transition: opacity 0.5s ease-in-out;
-            min-height: 2rem; /* Ensure space for messages (h-8) */
+            min-height: 2rem; /* h-8 */
+            font-weight: 500; /* font-medium */
         }
-        /* Style for the speak button */
-        #speak-button {
-            transition: background-color 0.3s ease;
+
+        /* --- Animation Styles --- */
+        #animation-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none; /* Allows clicks to go through */
+            z-index: 100; /* Ensure it's above other elements */
         }
-        #speak-button:hover {
-            background-color: #0ea5e9; /* Darker blue on hover */
+
+        .balloon {
+            position: absolute;
+            bottom: -50px; /* Start below the screen */
+            font-size: 2.5rem; /* Size of the balloon emoji */
+            animation: float-up 4s ease-out forwards;
+            opacity: 0.9;
         }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.9;
+            }
+            100% {
+                /* Float up and slightly drift horizontally */
+                transform: translateY(-120vh) translateX(calc(var(--drift) * 100px));
+                opacity: 0;
+            }
+        }
+        /* --- End Animation Styles --- */
+
+        /* Instagram Link Style */
+        #insta-link {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
     </style>
      <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-start pt-8 px-4">
+    <div id="animation-container"></div>
 
-    <h1 class="text-3xl font-bold text-sky-700 mb-6">Pronunciation Helper!</h1>
+    <h1 class="text-3xl font-bold text-sky-700 mb-4">Sound Match!</h1>
 
-    <div id="message-box" class="text-xl font-semibold text-gray-700 mb-4 text-center"></div>
+    <div id="instruction-area" class="mb-4 text-center shadow-md w-full max-w-xl">
+        <span id="instruction-text">Find pictures starting with <span class="blend">...</span></span>
+    </div>
 
-    <div id="image-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 max-w-2xl w-full">
+    <div id="message-box" class="text-lg text-gray-700 mb-4 h-8 text-center"></div>
+
+    <div id="image-grid" class="grid grid-cols-4 gap-3 sm:gap-4 mb-6 max-w-3xl w-full">
         </div>
 
-    <button id="speak-button" class="bg-sky-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md">
-        🔊 Speak Word Again
+    <button id="repeat-button" class="bg-sky-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-sky-600 transition duration-200 mb-8"> 🔊 Repeat Sound
     </button>
+
+    <div id="insta-link">
+        <a href="https://www.instagram.com/saleh__zeer/" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center text-sm text-sky-600 hover:text-sky-800 hover:underline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-1.5">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+            </svg>
+            Follow on Instagram
+        </a>
+     </div>
+
 
     <script>
         // --- Game Data ---
+        // Words grouped by their starting blend.
         // Using placeholder images. Replace these URLs with your actual image paths.
-        const words = [
-            { name: 'Black', image: 'https://placehold.co/150x150/000000/FFFFFF?text=Black' },
-            { name: 'Blanket', image: 'https://placehold.co/150x150/FBBF24/000000?text=Blanket' },
-            { name: 'Clock', image: 'https://placehold.co/150x150/ECFCCB/3F6212?text=Clock' },
-            { name: 'Club', image: 'https://placehold.co/150x150/A3E635/4D7C0F?text=Club' },
-            { name: 'Broom', image: 'https://placehold.co/150x150/CA8A04/FFFFFF?text=Broom' },
-            { name: 'Bride', image: 'https://placehold.co/150x150/FFFFFF/E11D48?text=Bride' },
-            { name: 'Crab', image: 'https://placehold.co/150x150/22D3EE/0E7490?text=Crab' },
-            { name: 'Crocodile', image: 'https://placehold.co/150x150/15803D/FFFFFF?text=Crocodile' },
-            { name: 'Fly', image: 'https://placehold.co/150x150/6B7280/FFFFFF?text=Fly' },
-            { name: 'Flag', image: 'https://placehold.co/150x150/DC2626/FFFFFF?text=Flag' },
-            { name: 'Globe', image: 'https://placehold.co/150x150/2563EB/FFFFFF?text=Globe' },
-            { name: 'Glass', image: 'https://placehold.co/150x150/BFDBFE/1E3A8A?text=Glass' },
-            { name: 'Frog', image: 'https://placehold.co/150x150/FACC15/854D0E?text=Frog' },
-            { name: 'Friday', image: 'https://placehold.co/150x150/A855F7/FFFFFF?text=Friday' },
-            { name: 'Green', image: 'https://placehold.co/150x150/16A34A/FFFFFF?text=Green' },
-            { name: 'Grass', image: 'https://placehold.co/150x150/84CC16/3F6212?text=Grass' }
-        ];
+        const wordData = {
+            'bl': [
+                { name: 'Black', image: 'https://placehold.co/150x150/000000/FFFFFF?text=Black' },
+                { name: 'Blanket', image: 'https://placehold.co/150x150/FBBF24/000000?text=Blanket' }
+            ],
+            'cl': [
+                { name: 'Clock', image: 'https://placehold.co/150x150/ECFCCB/3F6212?text=Clock' },
+                { name: 'Club', image: 'https://placehold.co/150x150/A3E635/4D7C0F?text=Club' }
+            ],
+            'br': [
+                { name: 'Broom', image: 'https://placehold.co/150x150/CA8A04/FFFFFF?text=Broom' },
+                { name: 'Bride', image: 'https://placehold.co/150x150/FFFFFF/E11D48?text=Bride' }
+            ],
+            'cr': [
+                { name: 'Crab', image: 'https://placehold.co/150x150/22D3EE/0E7490?text=Crab' },
+                { name: 'Crocodile', image: 'https://placehold.co/150x150/15803D/FFFFFF?text=Crocodile' }
+            ],
+            'fl': [
+                { name: 'Fly', image: 'https://placehold.co/150x150/6B7280/FFFFFF?text=Fly' },
+                { name: 'Flag', image: 'https://placehold.co/150x150/DC2626/FFFFFF?text=Flag' }
+            ],
+            'gl': [
+                { name: 'Globe', image: 'https://placehold.co/150x150/2563EB/FFFFFF?text=Globe' },
+                { name: 'Glass', image: 'https://placehold.co/150x150/BFDBFE/1E3A8A?text=Glass' }
+            ],
+            'fr': [
+                { name: 'Frog', image: 'https://placehold.co/150x150/FACC15/854D0E?text=Frog' },
+                { name: 'Friday', image: 'https://placehold.co/150x150/A855F7/FFFFFF?text=Friday' }
+            ],
+            'gr': [
+                { name: 'Green', image: 'https://placehold.co/150x150/16A34A/FFFFFF?text=Green' },
+                { name: 'Grass', image: 'https://placehold.co/150x150/84CC16/3F6212?text=Grass' }
+            ]
+        };
+
+        const blends = Object.keys(wordData); // ['bl', 'cl', 'br', ...]
+        const allWords = Object.values(wordData).flat(); // Get a flat list of all word objects
 
         // --- Game State ---
-        let currentWord = null;
-        const synth = window.speechSynthesis; // Speech synthesis interface
-        let gameActive = true; // To prevent clicks while processing or between words
+        let currentBlendIndex = -1;
+        let currentBlend = '';
+        let wordsForCurrentBlend = [];
+        let correctlySelectedWords = []; // Store names of correctly selected words this round
+        let shuffledBlends = [];
+        const synth = window.speechSynthesis;
+        let gameActive = true; // To prevent clicks during transitions
 
         // --- DOM Elements ---
         const imageGrid = document.getElementById('image-grid');
+        const instructionText = document.getElementById('instruction-text').querySelector('.blend'); // Target the span for the blend
+        const instructionContainer = document.getElementById('instruction-text'); // Target the whole instruction span
         const messageBox = document.getElementById('message-box');
-        const speakButton = document.getElementById('speak-button');
+        const repeatButton = document.getElementById('repeat-button');
+        const animationContainer = document.getElementById('animation-container'); // Get animation container
 
         // --- Functions ---
 
@@ -128,183 +231,254 @@
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
         /**
          * Speaks the given text using the Web Speech API.
-         * Creates a new utterance each time to avoid potential state issues.
          * @param {string} text The text to speak.
+         * @param {Function} [onEndCallback] Optional callback function when speech ends.
          */
-        function speak(text) {
-            // Cancel any ongoing speech before starting new speech
+        function speak(text, onEndCallback) {
             if (synth.speaking) {
-                console.log("Cancelling previous speech");
-                synth.cancel();
+                synth.cancel(); // Cancel previous speech first
             }
-
-            // Use a timeout to allow cancel to properly finish before speaking again
-            setTimeout(() => {
-                if (text) {
+            setTimeout(() => { // Timeout ensures cancel completes
+                if (text && typeof text === 'string') {
                     const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.pitch = 1; // Range 0-2
-                    utterance.rate = 0.9; // Range 0.1-10 (slower rate)
-                    utterance.volume = 1; // Range 0-1
-                    // Optional: Select a specific voice if needed
-                    // const voices = synth.getVoices();
-                    // if (voices.length > 0) {
-                    //    utterance.voice = voices[0]; // Example: use the first available voice
-                    // } else {
-                    //     console.warn("No speech synthesis voices found.");
-                    // }
+                    utterance.pitch = 1;
+                    utterance.rate = 0.9;
+                    utterance.volume = 1;
+                    utterance.lang = 'en-US';
 
+                    utterance.onend = () => {
+                        if (onEndCallback) {
+                            onEndCallback();
+                        }
+                    };
                     utterance.onerror = (event) => {
                         console.error('SpeechSynthesisUtterance error:', event.error);
-                        messageBox.textContent = 'Sorry, speech could not be played.';
-                        messageBox.classList.add('text-red-600');
+                        messageBox.textContent = 'Sorry, speech error.';
+                        messageBox.classList.add('text-red-500');
                     };
-
-                    console.log("Speaking:", text);
                     synth.speak(utterance);
                 } else {
-                    console.warn("Speak function called with empty text.");
+                     console.warn("Speak function called with invalid text:", text);
                 }
-            }, 100); // Short delay (100ms) after cancel
+            }, 100);
+        }
+
+        /**
+         * Finds the blend for a given word name.
+         * @param {string} wordName The name of the word.
+         * @returns {string|null} The blend string (e.g., 'bl') or null if not found.
+         */
+        function getBlendForWord(wordName) {
+            for (const blend in wordData) {
+                if (wordData[blend].some(word => word.name === wordName)) {
+                    return blend;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Creates and launches the balloon animation.
+         */
+        function showBalloonAnimation() {
+            const balloonCount = 5; // Number of balloons to release
+            for (let i = 0; i < balloonCount; i++) {
+                const balloon = document.createElement('span');
+                balloon.className = 'balloon';
+                balloon.textContent = '🎈';
+                // Random horizontal start position near center
+                balloon.style.left = `${45 + Math.random() * 10}%`;
+                // Random horizontal drift for animation
+                balloon.style.setProperty('--drift', Math.random() * 2 - 1); // -1 to 1
+                // Stagger animation start
+                balloon.style.animationDelay = `${Math.random() * 0.5}s`;
+
+                animationContainer.appendChild(balloon);
+
+                // Remove balloon after animation ends (4s duration + delay)
+                setTimeout(() => {
+                    balloon.remove();
+                }, 4500); // A bit longer than animation duration
+            }
         }
 
 
         /**
          * Handles the click event on an image card.
          * @param {Event} event The click event object.
-         * @param {object} wordData The data associated with the clicked image.
+         * @param {object} wordInfo The data associated with the clicked image {name, image}.
          */
-        function handleImageClick(event, wordData) {
-            if (!gameActive || !currentWord) {
-                console.log("Click ignored: Game not active or no current word.");
-                return; // Do nothing if game is inactive or no word selected
-            }
+        function handleImageClick(event, wordInfo) {
+            if (!gameActive) return; // Ignore clicks during transitions
 
             const clickedCard = event.currentTarget;
+            const wordName = wordInfo.name;
+            const wordBlend = getBlendForWord(wordName);
 
-            // Remove previous feedback styles immediately
-            document.querySelectorAll('.image-card.incorrect').forEach(card => {
-                card.classList.remove('incorrect');
-            });
+            // Clear previous incorrect styles and message color
+            document.querySelectorAll('.selected-incorrect').forEach(card => card.classList.remove('selected-incorrect'));
+            messageBox.textContent = '';
+            messageBox.classList.remove('text-red-500', 'text-green-600');
 
-            if (wordData.name === currentWord.name) {
-                // --- Correct guess ---
-                console.log("Correct guess:", wordData.name);
-                messageBox.textContent = 'Correct! 🎉';
-                messageBox.classList.remove('text-red-600');
-                messageBox.classList.add('text-green-600');
-                clickedCard.classList.add('correct'); // Add correct style
-                gameActive = false; // Disable clicks temporarily
 
-                // Move to the next word after a short delay
-                setTimeout(() => {
-                    nextWord(); // Setup and speak the next word
-                    gameActive = true; // Re-enable clicks after setup
-                }, 1500); // 1.5 second delay
+            if (wordBlend === currentBlend) {
+                // --- Correct Blend ---
+                if (!correctlySelectedWords.includes(wordName)) {
+                    correctlySelectedWords.push(wordName);
+                    clickedCard.classList.add('selected-correct');
+                    clickedCard.style.cursor = 'default';
 
+                    speak(`Yes! ${wordName} starts with ${currentBlend.toUpperCase()}`);
+                    messageBox.textContent = `Yes! "${wordName}"`; // Simple confirmation
+                    messageBox.classList.add('text-green-600');
+
+
+                    if (correctlySelectedWords.length === wordsForCurrentBlend.length) {
+                        // Round Complete!
+                        gameActive = false;
+                        messageBox.textContent = `Great! You found all the ${currentBlend.toUpperCase()} words!`;
+                        messageBox.classList.add('text-green-600');
+                        showBalloonAnimation(); // <-- Trigger balloon animation here
+                        speak(`Great! You found all the ${currentBlend.toUpperCase()} words!`, () => {
+                            setTimeout(nextBlend, 2500); // Wait a bit longer for balloons
+                        });
+                    }
+                } else {
+                     messageBox.textContent = `You already found ${wordName}.`;
+                }
             } else {
-                // --- Incorrect guess ---
-                console.log("Incorrect guess. Clicked:", wordData.name, "Expected:", currentWord.name);
-                messageBox.textContent = `Try again! That was "${wordData.name}".`;
-                messageBox.classList.remove('text-green-600');
-                messageBox.classList.add('text-red-600');
-                clickedCard.classList.add('incorrect'); // Add incorrect style
-
-                // Re-speak the target word to help the user
-                 setTimeout(() => {
-                     if (currentWord && !synth.speaking) { // Check again before speaking
-                        speak(`Find ${currentWord.name}`);
-                     }
-                 }, 500); // Speak after a short delay
+                // --- Incorrect Blend ---
+                clickedCard.classList.add('selected-incorrect');
+                const correctBlendForClicked = getBlendForWord(wordName);
+                // Add sad face emoji 😟
+                messageBox.textContent = `Oops! "${wordName}" starts with ${correctBlendForClicked.toUpperCase()}. Try again! 😟`;
+                messageBox.classList.add('text-red-500');
+                speak(`Oops! ${wordName} starts with ${correctBlendForClicked.toUpperCase()}. Find words starting with ${currentBlend.toUpperCase()}`);
+                setTimeout(() => {
+                     clickedCard.classList.remove('selected-incorrect');
+                     // Optionally clear message or leave it until next click
+                     // messageBox.textContent = '';
+                     // messageBox.classList.remove('text-red-500');
+                }, 1500);
             }
         }
 
         /**
-         * Sets up the next word challenge.
+         * Sets up the next blend challenge.
          */
-        function nextWord() {
-            console.log("Setting up next word...");
-            // Clear previous state
+        function nextBlend() {
+            currentBlendIndex++;
+            if (currentBlendIndex >= shuffledBlends.length) {
+                // Game Complete
+                instructionContainer.textContent = "You finished the game!";
+                // instructionText.textContent = ''; // No longer needed as container text is replaced
+                messageBox.textContent = "Well Done! 🎉";
+                messageBox.classList.add('text-green-600');
+                speak("Well Done! You matched all the sounds!");
+                imageGrid.innerHTML = '<p class="col-span-4 text-center text-xl font-semibold">Game Over!</p>';
+                gameActive = false;
+                repeatButton.disabled = true;
+                return;
+            }
+
+            // Setup Next Round
+            currentBlend = shuffledBlends[currentBlendIndex];
+            wordsForCurrentBlend = wordData[currentBlend];
+            correctlySelectedWords = [];
+            gameActive = true;
+
+            // Ensure the structure is correct before setting textContent
+             const firstChild = instructionContainer.firstChild;
+             if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+                 firstChild.textContent = 'Find pictures starting with ';
+             } else {
+                 // If structure is unexpected, reset it (safer)
+                 instructionContainer.innerHTML = 'Find pictures starting with <span class="blend">...</span>';
+             }
+             // Update the blend span if it exists
+             const blendSpan = instructionContainer.querySelector('.blend');
+             if(blendSpan) {
+                blendSpan.textContent = currentBlend.toUpperCase();
+             }
+
+
             messageBox.textContent = '';
-            messageBox.classList.remove('text-red-600', 'text-green-600'); // Clear color classes
+            messageBox.classList.remove('text-green-600', 'text-red-500');
+
             document.querySelectorAll('.image-card').forEach(card => {
-                card.classList.remove('correct', 'incorrect'); // Clear all borders/animations
+                card.classList.remove('selected-correct', 'selected-incorrect');
+                card.style.cursor = 'pointer';
             });
 
-            // Pick a new random word
-            const randomIndex = Math.floor(Math.random() * words.length);
-            currentWord = words[randomIndex];
-            console.log("New word:", currentWord.name);
-
-            // Shuffle the display order of images for variety
-            shuffleArray(words);
-            renderImages(); // Re-render images in new shuffled order
-
-            // Announce the word to find
-            messageBox.textContent = `Click on the image for:`;
-            speak(currentWord.name); // Speak the new word
+            speak(`Find words starting with the sound ${currentBlend.toUpperCase()}`);
+            console.log(`Next blend: ${currentBlend.toUpperCase()}, Words: ${wordsForCurrentBlend.map(w => w.name).join(', ')}`);
         }
 
         /**
-         * Renders the image cards in the grid.
+         * Renders all image cards in the grid.
          */
         function renderImages() {
-            console.log("Rendering images...");
-            imageGrid.innerHTML = ''; // Clear existing images
-            words.forEach(wordData => {
+            imageGrid.innerHTML = ''; // Clear grid before rendering
+            shuffleArray(allWords);
+
+            allWords.forEach(wordInfo => {
                 const card = document.createElement('div');
-                // Added base classes + specific classes from <style>
-                card.className = 'image-card bg-white rounded-lg shadow-md overflow-hidden p-2';
-                // Attach click listener to the card
-                card.addEventListener('click', (event) => handleImageClick(event, wordData));
+                card.className = 'image-card rounded-lg shadow-md overflow-hidden p-2';
+                card.dataset.wordName = wordInfo.name;
+                card.addEventListener('click', (event) => handleImageClick(event, wordInfo));
 
                 const img = document.createElement('img');
-                img.src = wordData.image;
-                img.alt = wordData.name;
-                img.className = 'w-full h-32 object-contain mb-2'; // Tailwind classes for image styling
+                img.src = wordInfo.image;
+                img.alt = wordInfo.name;
+                img.className = 'w-full h-28 object-contain mb-2';
 
-                 // Fallback for broken images
                 img.onerror = function() {
                     console.error(`Failed to load image: ${this.src}`);
-                    this.onerror=null; // Prevent infinite loop if placeholder fails
-                    this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Error'; // Simple error placeholder
-                    this.alt = `Error loading image for ${wordData.name}`;
+                    this.onerror=null;
+                    this.src='https://placehold.co/150x150/CCCCCC/FFFFFF?text=Error';
+                    this.alt = `Error loading image for ${wordInfo.name}`;
                 };
 
                 const nameLabel = document.createElement('span');
-                nameLabel.textContent = wordData.name;
-                nameLabel.className = 'text-sm font-medium text-gray-700 mt-1 text-center'; // Added text-center
+                nameLabel.textContent = wordInfo.name;
+                nameLabel.className = 'text-sm font-medium text-gray-700 mt-1 text-center';
 
                 card.appendChild(img);
-                card.appendChild(nameLabel); // Add text label below image
+                card.appendChild(nameLabel);
                 imageGrid.appendChild(card);
             });
-             console.log("Images rendered.");
+        }
+
+         /**
+         * Starts the game.
+         */
+        function startGame() {
+            console.log("Starting game...");
+            shuffledBlends = [...blends];
+            shuffleArray(shuffledBlends);
+            currentBlendIndex = -1;
+            renderImages(); // Render images first
+            // Ensure the instruction area structure is correct before starting
+            instructionContainer.innerHTML = 'Find pictures starting with <span class="blend">...</span>';
+            nextBlend(); // Then start the first round
         }
 
         // --- Event Listeners ---
-        speakButton.addEventListener('click', () => {
-            if (currentWord) {
-                 console.log("Speak button clicked for:", currentWord.name);
-                speak(currentWord.name); // Speak the current word again
-            } else {
-                console.log("Speak button clicked, but no current word.");
+        repeatButton.addEventListener('click', () => {
+            if (currentBlend && gameActive) {
+                speak(`Find words starting with the sound ${currentBlend.toUpperCase()}`);
             }
         });
 
         // --- Initialize Game ---
-        // Use window.onload to ensure the DOM is fully loaded before starting the game
         window.onload = () => {
-            console.log("Window loaded. Initializing game.");
-            // A small delay before the first word to ensure speech synthesis is ready
-            setTimeout(() => {
-                 nextWord(); // Start the game by picking the first word
-            }, 200); // 200ms delay
+             setTimeout(startGame, 200); // Delay helps ensure voices are ready
         };
 
     </script>
